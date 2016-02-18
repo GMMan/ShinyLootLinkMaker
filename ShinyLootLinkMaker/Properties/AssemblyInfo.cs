@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("ShinyLootLinkMaker")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("ShinyLoot Link Maker")]
+[assembly: AssemblyDescription("Gets download links for purchased files on ShinyLoot.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("ShinyLootLinkMaker")]
-[assembly: AssemblyCopyright("Copyright ©  2016")]
+[assembly: AssemblyCompany("GMWare")]
+[assembly: AssemblyProduct("ShinyLoot Link Maker")]
+[assembly: AssemblyCopyright("Copyright © cyanic 2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
