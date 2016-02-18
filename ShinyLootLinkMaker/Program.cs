@@ -22,67 +22,75 @@ namespace ShinyLootLinkMaker
             ApiClient client = new ApiClient();
             bool addComments = !args.Any(a => a.ToLowerInvariant() == "/n");
 
-            // Log in
-            ApiResponse<LoginCode, LoginResponse> loginResp;
-            do
+            try
             {
-                Console.WriteLine("Log in");
-                Console.Write("Username: ");
-                string username = Console.ReadLine();
-                Console.Write("Password: ");
-                string pass = ReadPassword();
-
-                loginResp = client.LogIn(username, pass);
-                if (loginResp == null)
+                // Log in
+                ApiResponse<LoginCode, LoginResponse> loginResp;
+                do
                 {
-                    Console.WriteLine("Unknown error while logging in.");
-                    Environment.Exit(1);
-                }
-                else if (loginResp.Code != LoginCode.Success)
-                {
-                    Console.WriteLine("Error logging in: {0}", loginResp.Message);
-                }
-            } while (loginResp == null || loginResp.Code != LoginCode.Success);
+                    Console.WriteLine("Log in");
+                    Console.Write("Username: ");
+                    string username = Console.ReadLine();
+                    Console.Write("Password: ");
+                    string pass = ReadPassword();
 
-            // Get games list
-            Console.WriteLine("Getting games list...");
-            ApiResponse<GamesCode, GamesResponse> gamesResp = client.GetMyGames();
-            if (gamesResp == null)
-            {
-                Console.WriteLine("Failed to get games list.");
-                Environment.Exit(2);
-            }
-            else if (gamesResp.Code != GamesCode.Success)
-            {
-                Console.WriteLine("Failed to get games list: {0}", gamesResp.Message);
-                Environment.Exit(2);
-            }
-            List<Game> games = gamesResp.Data.Games;
-
-            Console.WriteLine("Found games and files:");
-            // Write info to file
-            using (StreamWriter swLinks = SysFile.CreateText("links.txt"))
-            using (StreamWriter swKeys = SysFile.CreateText("with_keys.txt"))
-            {
-                foreach (Game game in games)
-                {
-                    Console.WriteLine("Game: {0}", game.Name);
-                    foreach (SLFile file in game.Files)
+                    loginResp = client.LogIn(username, pass);
+                    if (loginResp == null)
                     {
-                        Console.WriteLine("\tFile: {0} ({1})", file.ShortDescription, file.OS);
-                        if (addComments) swLinks.WriteLine("# {0} - {1} ({2})", game.Name, file.ShortDescription, file.OS);
-                        // Note: using API URL instead of CloudFront URL because the latter is set to expire in 60 seconds.
-                        swLinks.WriteLine(client.BuildGetFileUri(game.ID, file.ID));
+                        Console.WriteLine("Unknown error while logging in.");
+                        Environment.Exit(1);
                     }
+                    else if (loginResp.Code != LoginCode.Success)
+                    {
+                        Console.WriteLine("Error logging in: {0}", loginResp.Message);
+                    }
+                } while (loginResp == null || loginResp.Code != LoginCode.Success);
 
-                    // Write key status here
-                    string keyStatus;
-                    if (makeKeysStatus(game, out keyStatus)) swKeys.WriteLine(keyStatus);
-                    Console.WriteLine();
+                // Get games list
+                Console.WriteLine("Getting games list...");
+                ApiResponse<GamesCode, GamesResponse> gamesResp = client.GetMyGames();
+                if (gamesResp == null)
+                {
+                    Console.WriteLine("Failed to get games list.");
+                    Environment.Exit(2);
                 }
-            }
+                else if (gamesResp.Code != GamesCode.Success)
+                {
+                    Console.WriteLine("Failed to get games list: {0}", gamesResp.Message);
+                    Environment.Exit(2);
+                }
+                List<Game> games = gamesResp.Data.Games;
 
-            Console.WriteLine("Done.");
+                Console.WriteLine("Found games and files:");
+                // Write info to file
+                using (StreamWriter swLinks = SysFile.CreateText("links.txt"))
+                using (StreamWriter swKeys = SysFile.CreateText("with_keys.txt"))
+                {
+                    foreach (Game game in games)
+                    {
+                        Console.WriteLine("Game: {0}", game.Name);
+                        foreach (SLFile file in game.Files)
+                        {
+                            Console.WriteLine("\tFile: {0} ({1})", file.ShortDescription, file.OS);
+                            if (addComments) swLinks.WriteLine("# {0} - {1} ({2})", game.Name, file.ShortDescription, file.OS);
+                            // Note: using API URL instead of CloudFront URL because the latter is set to expire in 60 seconds.
+                            swLinks.WriteLine(client.BuildGetFileUri(game.ID, file.ID));
+                        }
+
+                        // Write key status here
+                        string keyStatus;
+                        if (makeKeysStatus(game, out keyStatus)) swKeys.WriteLine(keyStatus);
+                        Console.WriteLine();
+                    }
+                }
+
+                Console.WriteLine("Done.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error during processing: {0}", ex);
+                Environment.Exit(-1);
+            }
         }
 
         static bool makeKeysStatus(Game game, out string message)
